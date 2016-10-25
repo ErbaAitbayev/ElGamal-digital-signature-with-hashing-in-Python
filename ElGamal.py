@@ -42,23 +42,22 @@ def primRoot(modulo):
 
 def egKey():
     p = 17
-    a = primRoot(p)
+    g = primRoot(p)
     
-    private = random.randint(1, p-2)
-    public = pow(a,private,p)
-    return p, a, private, public
+    privateKey = random.randint(1, p-2)
+    publicKey = pow(g,privateKey,p)
+    return p, g, privateKey, publicKey
 
 
 """ Signature Generation 
 """
-def egGen(p, a, x, message):
+def egGen(p, g, x, message):
     while 1:
         k = random.randint(1,p-2)
         if gcd(k, p-1)==1: break
-    r = pow(a,k,p)
+    r = pow(g,k,p)
     l = modinv(k, p-1)
     
-    #cipher = [pow(ord(char),key,n) for char in plaintext]
     s = [l*(ord(char) - x*r)%(p-1) for char in message]
     return r,s
 
@@ -68,11 +67,10 @@ def egGen(p, a, x, message):
 def egVer(p, a,	y, r, s, message):
     if r < 1 or r > p-1 : return False
     v1 = [pow(y,r,p)%p * pow(r,num,p)%p for num in s]
-    #print(v1)
         
     hashed = hashFunction(message)
     v2 = [pow(a,ord(char),p) for char in hashed]
-    #print(v2)
+
 
     isValid = v1==v2
     
@@ -85,17 +83,22 @@ def egVer(p, a,	y, r, s, message):
 
 
 def main():
-    message = "36jkkk"
+    message = "AaaBbbCccDddEeeFff12345678910"
     print("Message: ", message)
     hashed = hashFunction(message)
     print("Hashed version: ", hashed)
+    print()
     
-    prime,alpha,private,public = egKey()    
-    print ("prime,alpha,private,public", prime,alpha,private,public)
-    rr,ss = egGen(prime,alpha,private, hashed)
-      
-    print("rr,ss", rr, ss)
-    egVer(prime, alpha, public, rr, ss, message)
+    p, g, private, public = egKey() 
+    print("Public key (p, g, y): ", [p, g, public])
+    print("Private key (x): ", private)
+    
+    print()
+    rr,ss = egGen(p,g,private, hashed)    
+    print("Signature (r, s): ", rr, ss)
+    
+    print()
+    egVer(p, g, public, rr, ss, message)
       
 main()  
  
